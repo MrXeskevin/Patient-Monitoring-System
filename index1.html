@@ -1,48 +1,204 @@
 <!DOCTYPE html>
 <html>
-
+    <html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Patient Monitoring System</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --background-color: #f5f6fa;
+            --text-color: #2c3e50;
+            --border-radius: 8px;
+            --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
         body {
-            background-color: lightblue;
+            background-color: var(--background-color);
             margin: 0;
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-color);
+            line-height: 1.6;
         }
 
         .header {
-            background-color: rgb(78, 193, 78);
+            background-color: var(--primary-color);
             color: white;
             padding: 20px;
             text-align: center;
+            box-shadow: var(--box-shadow);
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
         }
 
         .content {
             padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
         }
 
         button {
-            margin: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-width: 200px;
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            margin: 8px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            box-shadow: var(--box-shadow);
+        }
+
+        button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button i {
+            font-size: 1.1em;
         }
 
         .graph-canvas {
-            width: 300px;
-            height: 200px;
+            width: 100%;
+            height: 300px;
+            margin: 20px 0;
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
         }
 
         .session-graphs {
-            display: none;
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin: 20px 0;
         }
 
         .patient-details {
+            background-color: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
             margin-bottom: 20px;
+        }
+
+        form {
+            background-color: white;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin: 20px 0;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        label {
+            display: block;
+            margin: 15px 0 5px;
+            font-weight: bold;
+        }
+
+        #previousSessions {
+            margin-top: 30px;
+        }
+
+        #previousSessions h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .session-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 20px;
+        }
+
+        .session-container h3 {
+            color: var(--primary-color);
+            margin-top: 0;
+        }
+
+        #compareGraphsSection {
+            background-color: white;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin: 20px 0;
+        }
+
+        #compareGraphCanvas {
+            margin-top: 20px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .content {
+                padding: 10px;
+            }
+
+            .session-graphs {
+                grid-template-columns: 1fr;
+            }
+
+            .button-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            button {
+                width: 100%;
+                max-width: 300px;
+            }
         }
     </style>
 </head>
@@ -53,14 +209,41 @@
     </div>
 
     <div class="content">
-        <button onclick="showNewPatientForm()">New Patient</button>
-        <button onclick="showExistingPatients()">Previous Patients</button>
-        <button onclick="showSessionForm()">New Session</button>
-        <button onclick="showCompareGraphsForm()">Compare Graphs</button>
+        <div class="button-container">
+            <button onclick="showNewPatientForm()">
+                <i class="fas fa-user-plus"></i> New Patient
+            </button>
+            <button onclick="checkLatestTimestamp()">
+                <i class="fas fa-clock"></i> Check Latest Timestamp
+            </button>
+            <button onclick="checkLastSessions()">
+                <i class="fas fa-history"></i> Check Last 5 Sessions
+            </button>
+            <button onclick="categorizeSensorData()">
+                <i class="fas fa-sort"></i> Categorize Sensor Data
+            </button>
+            <button onclick="showExistingPatients()">
+                <i class="fas fa-users"></i> Previous Patients
+            </button>
+            <button onclick="showSessionForm()">
+                <i class="fas fa-calendar-plus"></i> New Session
+            </button>
+            <button onclick="showCompareGraphsForm()">
+                <i class="fas fa-chart-line"></i> Compare Graphs
+            </button>
+        </div>
     
         <form id="patientForm" style="display:none;">
             <h2>New Patient</h2>
-            Name: <input type="text" id="name"><br> Age: <input type="number" id="age"><br> Weight (kg): <input type="number" id="weight"><br> Height (cm): <input type="number" id="height"><br> Gender:
+            Patient ID: <input type="text" id="patientId" placeholder="Enter patient ID (e.g., PN001)"><br>
+            <button type="button" onclick="validatePatientId()">Validate Patient ID</button>
+            <p id="patientIdFeedback" style="color: red;"></p>
+            <p id="nextPatientIdSuggestion" style="color: green;"></p>
+            Name: <input type="text" id="name"><br>
+            Age: <input type="number" id="age"><br>
+            Weight (kg): <input type="number" id="weight"><br>
+            Height (cm): <input type="number" id="height"><br>
+            Gender:
             <select id="gender">
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
@@ -75,9 +258,24 @@
     
         <div id="patientPage" style="display:none;">
             <h2>Patient Details</h2>
+            
             <div id="patientDetails" class="patient-details"></div>
+            <textarea id="notes" placeholder="DOCTOR'S NOTES HERE..."></textarea>
+              <script>
+               const notes = document.getElementById("notes");
+
+               // Load saved notes when the page opens
+                notes.value = localStorage.getItem("userNotes") || "";
+
+               // Save notes when user types
+               notes.addEventListener("input", () => {localStorage.setItem("userNotes", notes.value);
+             });
+               </script>
             <h2>Previous Sessions</h2>
-            <div id="previousSessions"></div>
+            <div id="previousSessions">
+                <h2>Previous Sessions</h2>
+                <!-- Session graphs will be dynamically added here -->
+            </div>
             <h2>Current Session</h2>
             <canvas id="sensor1Graph_current" class="graph-canvas"></canvas>
             <canvas id="sensor2Graph_current" class="graph-canvas"></canvas>
@@ -87,57 +285,79 @@
     
         <form id="sessionForm" style="display:none;">
             <h2>New Session</h2>
-            Session ID: <input type="text" id="sessionId" readonly><br>
+            <label for="patientSelectForSession">Select Patient:</label>
+            <select id="patientSelectForSession"></select><br>
+            Session ID: <input type="text" id="sessionId" placeholder="Enter session ID (e.g., SN001)"><br>
+            <button type="button" onclick="validateSessionId()">Validate Session ID</button>
+            <p id="sessionIdFeedback" style="color: red;"></p>
+            <p id="nextSessionIdSuggestion" style="color: green;"></p>
             Terrain:
             <select id="terrain">
                 <option value="STAIRS">STAIRS</option>
                 <option value="SLOPE">SLOPE</option>
                 <option value="FLAT AREA">FLAT AREA</option>
-            </select><br> Time per session (minutes): <input type="number" id="timePerSession"><br> Injured limb:
+            </select><br>
+            Time per session (minutes): <input type="number" id="timePerSession"><br>
+            Injured limb:
             <select id="injuredLimb">
                 <option value="Left">Left</option>
                 <option value="Right">Right</option>
-            </select><br> Maximum static weight (kg): <input type="number" id="maxStaticWeight"><br> Time before support (seconds): <input type="number" id="timeBeforeSupport"><br>
+            </select><br>
+            Maximum static weight (kg): <input type="number" id="maxStaticWeight"><br>
+            Time before support (seconds): <input type="number" id="timeBeforeSupport"><br>
             <button type="button" onclick="submitSession()">Submit</button>
         </form>
-    
-        <!-- Compare Graphs Form -->
-        <div id="compareGraphsForm" style="display:none;">
-            <h2>Compare Graphs</h2>
-            <label for="graph1Select">Select First Graph:</label>
-            <select id="graph1Select"></select><br>
-            <label for="graph2Select">Select Second Graph:</label>
-            <select id="graph2Select"></select><br>
-            <button type="button" onclick="compareGraphs()">Compare</button>
-        </div>
-    
-        <!-- Compare Graphs Canvas -->
-        <canvas id="compareGraphCanvas" class="graph-canvas" style="display:none;"></canvas>
     </div>
     
+
+    <!-- Compare Graphs Section -->
+    <div id="compareGraphsSection" style="display:none;">
+        <h2>Compare Graphs</h2>
+        <label for="graph1Select">Select First Graph:</label>
+        <select id="graph1Select"></select><br>
+        <label for="graph2Select">Select Second Graph:</label>
+        <select id="graph2Select"></select><br>
+        <button type="button" onclick="compareGraphs()">Compare</button>
+        <canvas id="compareGraphCanvas" class="graph-canvas" style="display:none;"></canvas>
+    </div>
+
     <script>
         function showCompareGraphsForm() {
-            document.getElementById("compareGraphsForm").style.display = "block";
-            populateGraphSelects();
+            document.getElementById("compareGraphsSection").style.display = "block";
+            document.getElementById("patientForm").style.display = "none";
+            document.getElementById("existingPatients").style.display = "none";
+            document.getElementById("patientPage").style.display = "none";
+            document.getElementById("sessionForm").style.display = "none";
+
+            populateGraphSelects(); // Populate the dropdowns with session IDs
         }
     
-        function populateGraphSelects() {
+        async function populateGraphSelects() {
             const graph1Select = document.getElementById("graph1Select");
             const graph2Select = document.getElementById("graph2Select");
             graph1Select.innerHTML = "";
             graph2Select.innerHTML = "";
-    
-            const sessions = document.querySelectorAll(".session-graphs");
+
+            // Fetch all session IDs from the database
+            let { data: sessions, error } = await supabase
+                .from('sessions')
+                .select('id, "session-ID"');
+
+            if (error) {
+                console.error("Error fetching sessions:", error);
+                return;
+            }
+
+            // Populate the dropdowns with session IDs
             sessions.forEach(session => {
-                const sessionId = session.id.split('_')[1];
                 const option1 = document.createElement("option");
-                option1.value = sessionId;
-                option1.textContent = `Session ${sessionId}`;
+                option1.value = session["session-ID"];
+                option1.textContent = `Session ${session["session-ID"]}`;
                 graph1Select.appendChild(option1);
-    
+
                 const option2 = document.createElement("option");
-                option2.value = sessionId;
-                option2.textContent = `Session ${sessionId}`;
+                option2.value = session["session-ID"];
+                option2.textContent = `Session ${session["session-ID"]}`;
                 graph2Select.appendChild(option2);
             });
         }
@@ -145,25 +365,100 @@
         async function compareGraphs() {
             const graph1Id = document.getElementById("graph1Select").value;
             const graph2Id = document.getElementById("graph2Select").value;
-    
+
             if (!graph1Id || !graph2Id || graph1Id === graph2Id) {
                 alert("Please select two different graphs to compare.");
                 return;
             }
-    
-            const { data: sensorData1, error: error1 } = await supabase.from('sensor_data').select('*').eq('session_id', graph1Id);
-            const { data: sensorData2, error: error2 } = await supabase.from('sensor_data').select('*').eq('session_id', graph2Id);
-    
+
+            console.log(`\nComparing graphs for sessions ${graph1Id} and ${graph2Id}`);
+
+            // Fetch session time ranges first
+            let { data: session1Data, error: session1Error } = await supabase
+                .from('sessions')
+                .select('start_time, end_time')
+                .eq('session-ID', graph1Id)
+                .single();
+
+            let { data: session2Data, error: session2Error } = await supabase
+                .from('sessions')
+                .select('start_time, end_time')
+                .eq('session-ID', graph2Id)
+                .single();
+
+            if (session1Error || session2Error) {
+                console.error("Error fetching session time ranges:", session1Error || session2Error);
+                return;
+            }
+
+            console.log(`Session ${graph1Id} time range: ${session1Data.start_time} to ${session1Data.end_time}`);
+            console.log(`Session ${graph2Id} time range: ${session2Data.start_time} to ${session2Data.end_time}`);
+
+            // Fetch sensor data for the first session using the session's time range
+            const { data: sensorData1, error: error1 } = await supabase
+                .from('sensor_data')
+                .select('*')
+                .gte('timestamp', session1Data.start_time)
+                .lte('timestamp', session1Data.end_time)
+                .order('timestamp', { ascending: true });
+
+            // Fetch sensor data for the second session using the session's time range
+            const { data: sensorData2, error: error2 } = await supabase
+                .from('sensor_data')
+                .select('*')
+                .gte('timestamp', session2Data.start_time)
+                .lte('timestamp', session2Data.end_time)
+                .order('timestamp', { ascending: true });
+
             if (error1 || error2) {
                 console.error("Error fetching sensor data", error1 || error2);
                 return;
             }
-    
+
+            console.log(`\nSession ${graph1Id} data points:`, sensorData1 ? sensorData1.length : 0);
+            console.log(`Session ${graph2Id} data points:`, sensorData2 ? sensorData2.length : 0);
+
+            if (sensorData1) {
+                console.log(`\nSession ${graph1Id} data details:`);
+                sensorData1.forEach((data, index) => {
+                    console.log(`Point ${index + 1}:`);
+                    console.log(`- ID: ${data.id}`);
+                    console.log(`- Timestamp: ${new Date(data.timestamp)}`);
+                    console.log(`- Average: ${data.average_sensor}`);
+                    console.log(`- Session ID: ${data["session-ID"]}`);
+                });
+            }
+
+            if (sensorData2) {
+                console.log(`\nSession ${graph2Id} data details:`);
+                sensorData2.forEach((data, index) => {
+                    console.log(`Point ${index + 1}:`);
+                    console.log(`- ID: ${data.id}`);
+                    console.log(`- Timestamp: ${new Date(data.timestamp)}`);
+                    console.log(`- Average: ${data.average_sensor}`);
+                    console.log(`- Session ID: ${data["session-ID"]}`);
+                });
+            }
+
+            if (!sensorData1 || !sensorData2 || sensorData1.length === 0 || sensorData2.length === 0) {
+                console.error("No data points found for one or both sessions");
+                alert("No data points found for one or both sessions. Please check the console for details.");
+                return;
+            }
+
+            // Prepare data for the comparison graph
             const labels1 = sensorData1.map(d => new Date(d.timestamp).toLocaleTimeString());
             const labels2 = sensorData2.map(d => new Date(d.timestamp).toLocaleTimeString());
-            const sensor1Values1 = sensorData1.map(d => d.sensor1);
-            const sensor1Values2 = sensorData2.map(d => d.sensor1);
-    
+            const avgValues1 = sensorData1.map(d => d.average_sensor);
+            const avgValues2 = sensorData2.map(d => d.average_sensor);
+
+            console.log(`\nPreparing graph data:`);
+            console.log(`Session ${graph1Id} labels:`, labels1);
+            console.log(`Session ${graph1Id} values:`, avgValues1);
+            console.log(`Session ${graph2Id} labels:`, labels2);
+            console.log(`Session ${graph2Id} values:`, avgValues2);
+
+            // Plot the comparison graph
             const ctx = document.getElementById("compareGraphCanvas").getContext("2d");
             document.getElementById("compareGraphCanvas").style.display = "block";
             new Chart(ctx, {
@@ -172,15 +467,15 @@
                     labels: labels1.length > labels2.length ? labels1 : labels2,
                     datasets: [
                         {
-                            label: `Session ${graph1Id} - Sensor 1`,
-                            data: sensor1Values1,
+                            label: `Session ${graph1Id} - Average Force`,
+                            data: avgValues1,
                             borderColor: "rgba(75, 192, 192, 1)",
                             borderWidth: 2,
                             fill: false
                         },
                         {
-                            label: `Session ${graph2Id} - Sensor 1`,
-                            data: sensor1Values2,
+                            label: `Session ${graph2Id} - Average Force`,
+                            data: avgValues2,
                             borderColor: "rgba(192, 75, 75, 1)",
                             borderWidth: 2,
                             fill: false
@@ -194,14 +489,14 @@
                             display: true,
                             title: {
                                 display: true,
-                                text: 'Time (seconds)'
+                                text: 'Time'
                             }
                         },
                         y: {
                             display: true,
                             title: {
                                 display: true,
-                                text: 'Force'
+                                text: 'Average Force'
                             }
                         }
                     }
@@ -212,8 +507,7 @@
 
     <script>
         const SUPABASE_URL = "https://qvmvlrvltwuabwleqjkg.supabase.co";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF2bXZscnZsdHd1YWJ3bGVxamtnIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczOTM1MDA2MCwiZXhwIjoyMDU0OTI2MDYwfQ.3JCvU6JUxM9X_LOx-N2mv55InGvr4UHjZh6rHnLqOlw";
-
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF2bXZscnZsdHd1YWJ3bGVxamtnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkzNTAwNjAsImV4cCI6MjA1NDkyNjA2MH0.V3PQbBR_6fN2kMjsNKvbBvnMt_nBYd9tv2FvhMhpIsc";
         let supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let selectedPatientId = null;
         let currentSessionId = null;
@@ -223,6 +517,7 @@
             document.getElementById("existingPatients").style.display = "none";
             document.getElementById("patientPage").style.display = "none";
             document.getElementById("sessionForm").style.display = "none";
+            document.getElementById("compareGraphsSection").style.display = "none"; // Hide Compare Graphs
         }
 
         function showExistingPatients() {
@@ -230,7 +525,9 @@
             document.getElementById("existingPatients").style.display = "block";
             document.getElementById("patientPage").style.display = "none";
             document.getElementById("sessionForm").style.display = "none";
-            loadPatients();
+            document.getElementById("compareGraphsSection").style.display = "none"; // Hide Compare Graphs
+
+            loadPatients(); // Populate the dropdown with patient data
         }
 
         async function showSessionForm() {
@@ -238,178 +535,345 @@
             document.getElementById("existingPatients").style.display = "none";
             document.getElementById("patientPage").style.display = "none";
             document.getElementById("sessionForm").style.display = "block";
+            document.getElementById("compareGraphsSection").style.display = "none"; // Hide Compare Graphs
 
-            // Generate a new session ID and display it
-            let newSessionId = await generateNewSessionId();
-            document.getElementById("sessionId").value = newSessionId;
+            await populatePatientDropdown(); // Populate the patient dropdown
         }
 
         async function submitNewPatient() {
-            const patientData = {
-                name: document.getElementById("name").value,
-                age: parseInt(document.getElementById("age").value, 10),
-                weight: parseFloat(document.getElementById("weight").value),
-                height: parseFloat(document.getElementById("height").value),
-                gender: document.getElementById("gender").value
-            };
-            let {
-                data,
-                error
-            } = await supabase.from('patients').insert([patientData]).select("id");
-            if (error) {
-                alert("Error: " + error.message);
-            } else {
-                alert("Patient added successfully!");
-                selectedPatientId = data[0].id;
-                document.getElementById("patientForm").style.display = "none";
-                showSessionForm();
-            }
-        }
+    const patientId = document.getElementById("patientId").value.trim();
+    const name = document.getElementById("name").value;
+    const age = parseInt(document.getElementById("age").value, 10);
+    const weight = parseFloat(document.getElementById("weight").value);
+    const height = parseFloat(document.getElementById("height").value);
+    const gender = document.getElementById("gender").value;
+
+    // Validate patient ID format
+    if (!patientId.match(/^PN\d{3}$/)) {
+        alert("Invalid patient ID format. Please use the format PN001.");
+        return;
+    }
+
+    // Check if the patient ID already exists
+    let { data, error } = await supabase
+        .from('patients')
+        .select('"patient-ID"')
+        .eq('"patient-ID"', patientId);
+
+    if (error) {
+        console.error("Error validating patient ID:", error);
+        alert("An error occurred while validating the patient ID.");
+        return;
+    }
+
+    if (data.length > 0) {
+        alert(`Patient ID "${patientId}" is already in use. Please choose a different ID.`);
+        return;
+    }
+
+    // Insert the patient data
+    let { data: insertData, error: insertError } = await supabase.from('patients').insert([{
+        "patient-ID": patientId,
+        name: name,
+        age: age,
+        weight: weight,
+        height: height,
+        gender: gender
+    }]);
+
+    if (insertError) {
+        console.error("Error inserting patient:", insertError);
+        alert("Failed to save patient. " + insertError.message);
+    } else {
+        alert("Patient added successfully!");
+        document.getElementById("patientForm").style.display = "none";
+        showSessionForm(); // Proceed to the session form
+    }
+}
 
         async function submitSession() {
-            const sessionId = document.getElementById("sessionId").value;
-            const terrain = document.getElementById("terrain").value.toUpperCase();
-            const timePerSession = parseInt(document.getElementById("timePerSession").value, 10);
-            const injuredLimb = document.getElementById("injuredLimb").value;
-            const maxStaticWeight = parseFloat(document.getElementById("maxStaticWeight").value);
-            const timeBeforeSupport = parseFloat(document.getElementById("timeBeforeSupport").value);
+    const sessionId = document.getElementById("sessionId").value.trim();
+    const patientId = document.getElementById("patientSelectForSession").value;
+    const terrain = document.getElementById("terrain").value.toUpperCase();
+    const timePerSession = parseInt(document.getElementById("timePerSession").value, 10); // Duration in minutes
+    const injuredLimb = document.getElementById("injuredLimb").value;
+    const maxStaticWeight = parseFloat(document.getElementById("maxStaticWeight").value);
+    const timeBeforeSupport = parseFloat(document.getElementById("timeBeforeSupport").value);
 
-            // ✅ Restrict Terrain to Only Allowed Values
-            const allowedTerrains = ["STAIRS", "SLOPE", "FLAT AREA"];
-            if (!allowedTerrains.includes(terrain)) {
-                alert("Invalid Terrain. Please choose STAIRS, SLOPE, or FLAT AREA.");
-                return;
-            }
+    // Validate session ID format
+    if (!sessionId.match(/^SN\d{3}$/)) {
+        alert("Invalid session ID format. Please use the format SN001.");
+        return;
+    }
 
-            // ✅ Ensure selectedPatientId is Set
-            if (!selectedPatientId) {
-                alert("Error: No patient selected.");
-                return;
-            }
+    // Check if the session ID already exists
+    let { data, error } = await supabase
+        .from('sessions')
+        .select('"session-ID"')
+        .eq('"session-ID"', sessionId);
 
-            // ✅ Insert Session Data into Supabase
-            let {
-                data,
-                error
-            } = await supabase.from('sessions').insert([{
-                id: sessionId, // Use the generated session ID
-                patient_id: selectedPatientId,
-                terrain: terrain,
-                time_per_session: timePerSession,
-                injured_limb: injuredLimb,
-                max_static_weight: maxStaticWeight,
-                time_before_support: timeBeforeSupport
-            }]);
+    if (error) {
+        console.error("Error validating session ID:", error);
+        alert("An error occurred while validating the session ID.");
+        return;
+    }
 
-            if (error) {
-                console.error("Error inserting session:", error);
-                alert("Failed to save session. " + error.message);
-            } else {
-                alert("Session added successfully!");
-                currentSessionId = sessionId; // Store session ID for further use
-                document.getElementById("sessionForm").style.display = "none"; // Hide form after submission
-                fetchSensorData(); // Fetch sensor data for the current session
-            }
-        }
+    if (data.length > 0) {
+        alert(`Session ID "${sessionId}" is already in use. Please choose a different ID.`);
+        return;
+    }
+
+    // Get current time in UTC
+    const now = new Date();
+    const startTimeUTC = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+
+    // Calculate end time in UTC
+    const endTimeUTC = new Date(startTimeUTC.getTime() + timePerSession * 60 * 1000);
+
+    console.log("Start Time (UTC):", startTimeUTC);
+    console.log("End Time (UTC):", endTimeUTC);
+
+    // Insert the session data with both start and end times in UTC
+    let { error: insertError } = await supabase.from('sessions').insert([{
+        "session-ID": sessionId,
+        "patient-ID": patientId,
+        terrain: terrain,
+        time_per_session: timePerSession,
+        injured_limb: injuredLimb,
+        max_static_weight: maxStaticWeight,
+        time_before_support: timeBeforeSupport,
+        start_time: startTimeUTC.toISOString(),
+        end_time: endTimeUTC.toISOString()
+    }]);
+
+    if (insertError) {
+        console.error("Error inserting session:", insertError);
+        alert("Failed to save session. " + insertError.message);
+        return;
+    }
+
+    alert("Session added successfully!");
+    currentSessionId = sessionId; // Store session ID for further use
+    monitorSession(sessionId, startTimeUTC, endTimeUTC, terrain); // Start monitoring the session
+    document.getElementById("sessionForm").style.display = "none"; // Hide form after submission
+}
 
         async function generateNewSessionId() {
-            // Fetch the latest session ID
-            let { data, error } = await supabase
-                .from('sessions')
-                .select('id')
-                .order('id', { ascending: false })
-                .limit(1);
+    console.log("Generating new session ID...");
+    let { data, error } = await supabase
+        .from('sessions')
+        .select('"session-ID"') // Ensure this matches the column name in your database
+        .order('"session-ID"', { ascending: false }) // Order by the "session-ID" column
+        .limit(1);
 
-            if (error) {
-                console.error("Error fetching latest session ID:", error);
-                return "SN001"; // Default to SN001 if there's an error
-            }
+    if (error) {
+        console.error("Error fetching latest session ID:", error);
+        return "SN001"; // Default to SN001 if there's an error
+    }
 
-            if (data.length === 0) {
-                return "SN001"; // Default to SN001 if no sessions exist
-            }
+    if (data.length === 0) {
+        console.log("No existing sessions found. Defaulting to SN001.");
+        return "SN001"; // Default to SN001 if no sessions exist
+    }
 
-            // Increment the latest session ID
-            let latestSessionId = data[0].id;
-            let sessionNumber = parseInt(latestSessionId.replace("SN", "")) + 1;
-            return "SN" + sessionNumber.toString().padStart(3, "0");
-        }
+    let latestSessionId = data[0]["session-ID"];
+    console.log("Latest session ID:", latestSessionId);
+    let sessionNumber = parseInt(latestSessionId.replace("SN", "")) + 1;
+    let newSessionId = "SN" + sessionNumber.toString().padStart(3, "0");
+    console.log("Generated new session ID:", newSessionId);
+    return newSessionId;
+}
+
+        async function validateSessionId() {
+    const sessionId = document.getElementById("sessionId").value.trim();
+    const feedbackElement = document.getElementById("sessionIdFeedback");
+    const suggestionElement = document.getElementById("nextSessionIdSuggestion");
+
+    // Clear previous feedback
+    feedbackElement.textContent = "";
+    suggestionElement.textContent = "";
+
+    if (!sessionId.match(/^SN\d{3}$/)) {
+        feedbackElement.textContent = "Invalid format. Please use the format SN001.";
+        return;
+    }
+
+    // Check if the session ID already exists
+    let { data, error } = await supabase
+        .from('sessions')
+        .select('"session-ID"')
+        .eq('"session-ID"', sessionId);
+
+    if (error) {
+        console.error("Error validating session ID:", error);
+        feedbackElement.textContent = "An error occurred while validating the session ID.";
+        return;
+    }
+
+    if (data.length > 0) {
+        feedbackElement.textContent = `Session ID "${sessionId}" is already in use.`;
+    } else {
+        feedbackElement.textContent = `Session ID "${sessionId}" is available.`;
+    }
+
+    // Suggest the next available session ID
+    let { data: latestData, error: latestError } = await supabase
+        .from('sessions')
+        .select('"session-ID"')
+        .order('"session-ID"', { ascending: false })
+        .limit(1);
+
+    if (latestError) {
+        console.error("Error fetching the latest session ID:", latestError);
+        suggestionElement.textContent = "Unable to suggest the next session ID.";
+        return;
+    }
+
+    if (latestData.length > 0) {
+        let latestSessionId = latestData[0]["session-ID"];
+        let sessionNumber = parseInt(latestSessionId.replace("SN", "")) + 1;
+        let nextSessionId = "SN" + sessionNumber.toString().padStart(3, "0");
+        suggestionElement.textContent = `Suggested next session ID: ${nextSessionId}`;
+    } else {
+        suggestionElement.textContent = "Suggested next session ID: SN001";
+    }
+}
+
+        async function validatePatientId() {
+    const patientId = document.getElementById("patientId").value.trim();
+    const feedbackElement = document.getElementById("patientIdFeedback");
+    const suggestionElement = document.getElementById("nextPatientIdSuggestion");
+
+    // Clear previous feedback
+    feedbackElement.textContent = "";
+    suggestionElement.textContent = "";
+
+    if (!patientId.match(/^PN\d{3}$/)) {
+        feedbackElement.textContent = "Invalid format. Please use the format PN001.";
+        return;
+    }
+
+    // Check if the patient ID already exists
+    let { data, error } = await supabase
+        .from('patients')
+        .select('"patient-ID"')
+        .eq('"patient-ID"', patientId);
+
+    if (error) {
+        console.error("Error validating patient ID:", error);
+        feedbackElement.textContent = "An error occurred while validating the patient ID.";
+        return;
+    }
+
+    if (data.length > 0) {
+        feedbackElement.textContent = `Patient ID "${patientId}" is already in use.`;
+    } else {
+        feedbackElement.textContent = `Patient ID "${patientId}" is available.`;
+    }
+
+    // Suggest the next available patient ID
+    let { data: latestData, error: latestError } = await supabase
+        .from('patients')
+        .select('"patient-ID"')
+        .order('"patient-ID"', { ascending: false })
+        .limit(1);
+
+    if (latestError) {
+        console.error("Error fetching the latest patient ID:", latestError);
+        suggestionElement.textContent = "Unable to suggest the next patient ID.";
+        return;
+    }
+
+    if (latestData.length > 0) {
+        let latestPatientId = latestData[0]["patient-ID"];
+        let patientNumber = parseInt(latestPatientId.replace("PN", "")) + 1;
+        let nextPatientId = "PN" + patientNumber.toString().padStart(3, "0");
+        suggestionElement.textContent = `Suggested next patient ID: ${nextPatientId}`;
+    } else {
+        suggestionElement.textContent = "Suggested next patient ID: PN001";
+    }
+}
 
         async function loadPatients() {
-            let {
-                data,
-                error
-            } = await supabase.from('patients').select("id, name");
-            if (error) return console.error("Error loading patients", error);
-            let patientSelect = document.getElementById("patientSelect");
-            patientSelect.innerHTML = "";
-            data.forEach(patient => {
-                let option = document.createElement("option");
-                option.value = patient.id;
-                option.textContent = patient.name;
-                patientSelect.appendChild(option);
-            });
-        }
+    let { data, error } = await supabase.from('patients').select('"patient-ID", name');
+    if (error) {
+        console.error("Error loading patients:", error);
+        return;
+    }
+
+    let patientSelect = document.getElementById("patientSelect");
+    patientSelect.innerHTML = ""; // Clear existing options
+
+    // Populate the dropdown with patient data
+    data.forEach(patient => {
+        let option = document.createElement("option");
+        option.value = patient["patient-ID"];
+        option.textContent = `${patient["patient-ID"]} - ${patient.name}`;
+        patientSelect.appendChild(option);
+    });
+}
 
         async function loadPatientPage() {
-            selectedPatientId = document.getElementById("patientSelect").value;
-            if (!selectedPatientId) return;
+    selectedPatientId = document.getElementById("patientSelect").value;
+    if (!selectedPatientId) return;
 
-            // Fetch patient details
-            let {
-                data: patientData,
-                error: patientError
-            } = await supabase.from('patients').select("*").eq('id', selectedPatientId).single();
-            if (patientError) return console.error("Error loading patient details", patientError);
+    document.getElementById("patientForm").style.display = "none";
+    document.getElementById("existingPatients").style.display = "none";
+    document.getElementById("patientPage").style.display = "block";
+    document.getElementById("sessionForm").style.display = "none";
+    document.getElementById("compareGraphsSection").style.display = "none"; // Hide Compare Graphs
 
-            // Display patient details
-            document.getElementById("patientDetails").innerHTML = `
-                <p>Name: ${patientData.name}</p>
-                <p>Age: ${patientData.age}</p>
-                <p>Weight: ${patientData.weight} kg</p>
-                <p>Height: ${patientData.height} cm</p>
-                <p>Gender: ${patientData.gender}</p>
-            `;
+    // Fetch and display patient details
+    let { data: patientData, error: patientError } = await supabase
+        .from('patients')
+        .select('*')
+        .eq('"patient-ID"', selectedPatientId)
+        .single();
 
-            // Fetch previous sessions
-            let {
-                data: sessionData,
-                error: sessionError
-            } = await supabase.from('sessions').select("id, terrain").eq('patient_id', selectedPatientId);
-            if (sessionError) return console.error("Error loading sessions", sessionError);
+    if (patientError) {
+        console.error("Error loading patient details:", patientError);
+        return;
+    }
 
-            // Fetch sensor data for each session and update graphs
-            let previousSessionsContainer = document.getElementById("previousSessions");
-            previousSessionsContainer.innerHTML = ""; // Clear previous sessions
-            for (let session of sessionData) {
-                let {
-                    data: sensorData,
-                    error: sensorError
-                } = await supabase.from('sensor_data').select('*').eq('session_id', session.id);
-                if (sensorError) return console.error("Error fetching sensor data", sensorError);
+    document.getElementById("patientDetails").innerHTML = `
+        <p>Name: ${patientData.name}</p>
+        <p>Age: ${patientData.age}</p>
+        <p>Weight: ${patientData.weight} kg</p>
+        <p>Height: ${patientData.height} cm</p>
+        <p>Gender: ${patientData.gender}</p>
+    `;
 
-                // Create a new canvas for each session's graphs
-                let sessionDiv = document.createElement("div");
-                sessionDiv.innerHTML = `<h3>Session ${session.id} - Terrain: ${session.terrain}</h3>
-                                        <button onclick="toggleGraphs(${session.id})">Show/Hide Graphs</button>
-                                        <div id="sessionGraphs_${session.id}" class="session-graphs">
-                                            <canvas id="sensor1Graph_${session.id}" class="graph-canvas"></canvas>
-                                            <canvas id="sensor2Graph_${session.id}" class="graph-canvas"></canvas>
-                                            <canvas id="sensor3Graph_${session.id}" class="graph-canvas"></canvas>
-                                            <canvas id="averageGraph_${session.id}" class="graph-canvas"></canvas>
-                                        </div>`;
-                previousSessionsContainer.appendChild(sessionDiv);
+    // Fetch and display previous sessions for the patient
+    let { data: sessionData, error: sessionError } = await supabase
+        .from('sessions')
+        .select('"session-ID", terrain, start_time, end_time')
+        .eq('"patient-ID"', selectedPatientId);
 
-                // Delay the execution of updateGraphs to ensure the canvas elements are available
-                setTimeout(() => {
-                    updateGraphs(sensorData, session.id, session.terrain);
-                }, 100);
-            }
+    if (sessionError) {
+        console.error("Error loading sessions:", sessionError);
+        return;
+    }
 
-            // Show patient page
-            document.getElementById("patientPage").style.display = "block";
-            document.getElementById("existingPatients").style.display = "none";
-        }
+    let previousSessionsContainer = document.getElementById("previousSessions");
+    previousSessionsContainer.innerHTML = ""; // Clear previous sessions
+
+    sessionData.forEach(session => {
+        let sessionDiv = document.createElement("div");
+        sessionDiv.innerHTML = `
+            <h3>Session ${session["session-ID"]} - Terrain: ${session.terrain}</h3>
+            <button onclick="toggleGraphs('${session["session-ID"]}')">Show/Hide Graphs</button>
+            <div id="sessionGraphs_${session["session-ID"]}" class="session-graphs" style="display: none;">
+                <canvas id="sensor1Graph_${session["session-ID"]}" class="graph-canvas"></canvas>
+                <canvas id="sensor2Graph_${session["session-ID"]}" class="graph-canvas"></canvas>
+                <canvas id="sensor3Graph_${session["session-ID"]}" class="graph-canvas"></canvas>
+                <canvas id="averageGraph_${session["session-ID"]}" class="graph-canvas"></canvas>
+            </div>`;
+        previousSessionsContainer.appendChild(sessionDiv);
+
+        // Fetch and plot graphs for the session
+        fetchAndPlotSessionGraphs(session["session-ID"], session.terrain);
+    });
+}
 
         function toggleGraphs(sessionId) {
             const graphsDiv = document.getElementById(`sessionGraphs_${sessionId}`);
@@ -417,30 +881,77 @@
         }
 
         async function fetchSensorData() {
-            let {
-                data,
-                error
-            } = await supabase.from('sensor_data').select('*').eq('session_id', currentSessionId);
-            if (error) return console.error("Error fetching sensor data", error);
-            updateGraphs(data, "current");
+            let { data: sensorData, error } = await supabase
+                .from('sensor_data')
+                .select('*')
+                .eq('session-ID', currentSessionId); // Correct column name
+
+            if (error) {
+                console.error("Error fetching sensor data:", error);
+                return;
+            }
+
+            console.log("Fetched sensor data:", sensorData);
+            updateGraphs(sensorData, "current");
         }
 
         function updateGraphs(sensorData, sessionId, terrain) {
-            let labels = sensorData.map(d => new Date(d.timestamp).toLocaleTimeString());
-            let sensor1Values = sensorData.map(d => d.sensor1);
-            let sensor2Values = sensorData.map(d => d.sensor2);
-            let sensor3Values = sensorData.map(d => d.sensor3);
-            let avgValues = sensorData.map(d => d.average_sensor);
+    console.log(`\nUpdating graphs for Session ${sessionId}:`);
+    console.log(`Number of data points: ${sensorData.length}`);
 
-            createGraph(`sensor1Graph_${sessionId}`, labels, sensor1Values, `Sensor 1 - Terrain: ${terrain}`);
-            createGraph(`sensor2Graph_${sessionId}`, labels, sensor2Values, `Sensor 2 - Terrain: ${terrain}`);
-            createGraph(`sensor3Graph_${sessionId}`, labels, sensor3Values, `Sensor 3 - Terrain: ${terrain}`);
-            createGraph(`averageGraph_${sessionId}`, labels, avgValues, `Average Force - Terrain: ${terrain}`);
+    // Extract labels (time) and sensor values
+    let labels = sensorData.map(d => new Date(d.timestamp).toLocaleTimeString());
+    let sensor1Values = sensorData.map(d => d.sensor1);
+    let sensor2Values = sensorData.map(d => d.sensor2);
+    let sensor3Values = sensorData.map(d => d.sensor3);
+    let avgValues = sensorData.map(d => d.average_sensor);
+
+    // Log the number of values for each sensor
+    console.log(`Sensor 1 values: ${sensor1Values.length}`);
+    console.log(`Sensor 2 values: ${sensor2Values.length}`);
+    console.log(`Sensor 3 values: ${sensor3Values.length}`);
+    console.log(`Average values: ${avgValues.length}`);
+
+    // Log any null or undefined values
+    sensorData.forEach((data, index) => {
+        if (data.sensor1 === null || data.sensor1 === undefined) {
+            console.warn(`Sensor 1 is null/undefined at index ${index}`);
         }
+        if (data.sensor2 === null || data.sensor2 === undefined) {
+            console.warn(`Sensor 2 is null/undefined at index ${index}`);
+        }
+        if (data.sensor3 === null || data.sensor3 === undefined) {
+            console.warn(`Sensor 3 is null/undefined at index ${index}`);
+        }
+    });
+
+    // Title prefix for the graph
+    const titlePrefix = `Session: ${sessionId} - Terrain: ${terrain}`;
+
+    // Create or update graphs for each sensor
+    createGraph(`sensor1Graph_${sessionId}`, labels, sensor1Values, `Sensor 1 - ${titlePrefix}`);
+    createGraph(`sensor2Graph_${sessionId}`, labels, sensor2Values, `Sensor 2 - ${titlePrefix}`);
+    createGraph(`sensor3Graph_${sessionId}`, labels, sensor3Values, `Sensor 3 - ${titlePrefix}`);
+    createGraph(`averageGraph_${sessionId}`, labels, avgValues, `Average Force - ${titlePrefix}`);
+}
 
         function createGraph(canvasId, labels, data, label) {
-            let ctx = document.getElementById(canvasId).getContext("2d");
-            new Chart(ctx, {
+            console.log(`Creating graph: ${canvasId}`, labels, data, label);
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) {
+                console.error(`Canvas with ID ${canvasId} not found.`);
+                return;
+            }
+
+            const ctx = canvas.getContext("2d");
+
+            // Destroy the existing chart if it exists to avoid overlapping
+            if (canvas.chartInstance) {
+                canvas.chartInstance.destroy();
+            }
+
+            // Create a new chart
+            canvas.chartInstance = new Chart(ctx, {
                 type: "line",
                 data: {
                     labels: labels,
@@ -459,14 +970,14 @@
                             display: true,
                             title: {
                                 display: true,
-                                text: 'Time (seconds)'
+                                text: 'Time'
                             }
                         },
                         y: {
                             display: true,
                             title: {
                                 display: true,
-                                text: 'Force'
+                                text: 'Sensor Value'
                             }
                         }
                     }
@@ -474,8 +985,646 @@
             });
         }
 
+        function updateGraph(canvasId, labels, data, label) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) {
+        console.error(`Canvas with ID ${canvasId} not found.`);
+        return;
+    }
+
+    const ctx = canvas.getContext("2d");
+
+    // Destroy the existing chart if it exists to avoid overlapping
+    if (canvas.chartInstance) {
+        canvas.chartInstance.destroy();
+    }
+
+    // Create a new chart
+    canvas.chartInstance = new Chart(ctx, {
+        type: "line",
+        data: {
+            labels: labels,
+            datasets: [{
+                label: label,
+                data: data,
+                borderColor: "rgba(75, 192, 192, 1)",
+                borderWidth: 2,
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Time (seconds)'
+                    }
+                },
+                y: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Sensor Value'
+                    }
+                }
+            }
+        }
+    });
+}
+
         setInterval(fetchSensorData, 1000);
+        setInterval(insertSensorData, 5000); // Insert sensor data every 5 seconds
+
+        supabase.from('sessions').select('*').then(console.log).catch(console.error);
+
+        async function populatePatientDropdown() {
+    const patientSelect = document.getElementById("patientSelectForSession");
+    patientSelect.innerHTML = ""; // Clear existing options
+
+    let { data, error } = await supabase.from('patients').select('"patient-ID", name');
+    if (error) {
+        console.error("Error fetching patients:", error);
+        return;
+    }
+
+    // Add an option for each patient
+    data.forEach(patient => {
+        const option = document.createElement("option");
+        option.value = patient["patient-ID"];
+        option.textContent = `${patient["patient-ID"]} - ${patient.name}`;
+        patientSelect.appendChild(option);
+    });
+}
+
+        async function monitorSession(sessionId, startTime, endTime, terrain) {
+    // Fetch the session details to get the start_time and end_time if not provided
+    if (!startTime || !endTime) {
+        let { data: sessionData, error } = await supabase
+            .from('sessions')
+            .select('start_time, end_time')
+            .eq('"session-ID"', sessionId)
+            .single();
+
+        if (error) {
+            console.error("Error fetching session details:", error);
+            return;
+        }
+
+        startTime = new Date(sessionData.start_time); // Use the start_time from the database
+        endTime = new Date(sessionData.end_time); // Use the end_time from the database
+    }
+
+    console.log(`Monitoring Session: ${sessionId}`);
+    console.log(`Start Time: ${startTime}`);
+    console.log(`End Time: ${endTime}`);
+
+    const intervalId = setInterval(async () => {
+        // Fetch the two most recent timestamps from the sensor_data table
+        let { data: recentSensorData, error: sensorError } = await supabase
+            .from('sensor_data')
+            .select('timestamp')
+            .order('timestamp', { ascending: false })
+            .limit(2); // Fetch the two most recent rows
+
+        if (sensorError) {
+            console.error("Error fetching the most recent sensor data timestamps:", sensorError);
+            return;
+        }
+
+        if (!recentSensorData || recentSensorData.length < 2 || !recentSensorData[1]?.timestamp) {
+            console.warn("No valid second last timestamp found in the sensor data.");
+            return;
+        }
+
+        const secondLastTimestamp = new Date(recentSensorData[1].timestamp); // Get the second last timestamp
+        console.log(`Second Last Sensor Data Timestamp: ${secondLastTimestamp}`);
+
+        // Check if the second last timestamp falls within the session's time range
+        if (secondLastTimestamp >= startTime && secondLastTimestamp <= endTime) {
+            console.log(`Session ${sessionId} is active based on the second last timestamp.`);
+
+            // Fetch and update the graph for the current session
+            let { data: sensorData, error } = await supabase
+                .from('sensor_data')
+                .select('*')
+                .eq('session-ID', sessionId)
+                .gte('timestamp', startTime.toISOString())
+                .lte('timestamp', secondLastTimestamp.toISOString()); // Fetch data up to the second last timestamp
+
+            if (error) {
+                console.error("Error fetching sensor data for current session:", error);
+                return;
+            }
+
+            // Update the graph for the current session
+            updateGraphs(sensorData, "current", terrain);
+
+            // Automatically categorize uncategorized sensor data
+            await categorizeSensorData();
+        } else {
+            console.log(`Session ${sessionId} is no longer active based on the second last timestamp.`);
+            clearInterval(intervalId); // Stop monitoring if the session is no longer active
+        }
+    }, 5000); // Fetch and update every 5 seconds
+}
+
+        async function fetchAndUpdateCurrentSessionGraph(sessionId, terrain) {
+    let { data, error } = await supabase
+        .from('sensor_data')
+        .select('*')
+        .eq('session-ID', sessionId); // Correct column name
+
+    if (error) {
+        console.error("Error fetching sensor data for current session:", error);
+        return;
+    }
+
+    console.log("Fetched sensor data:", sensorData);
+    updateGraphs(sensorData, "current", terrain);
+}
+
+        async function fetchAndPlotSessionGraphs(sessionId, terrain) {
+    try {
+        console.log(`\nFetching data for Session ${sessionId}...`);
+        
+        // Fetch the session's time range first
+        let { data: sessionData, error: sessionError } = await supabase
+            .from('sessions')
+            .select('start_time, end_time')
+            .eq('session-ID', sessionId)
+            .single();
+
+        if (sessionError) {
+            console.error(`Error fetching session time range:`, sessionError);
+            return;
+        }
+
+        console.log(`Session time range: ${sessionData.start_time} to ${sessionData.end_time}`);
+
+        // Fetch all sensor data within the session's time range
+        let { data: sensorData, error } = await supabase
+            .from('sensor_data')
+            .select('*')
+            .gte('timestamp', sessionData.start_time)
+            .lte('timestamp', sessionData.end_time)
+            .order('timestamp', { ascending: true });
+
+        if (error) {
+            console.error(`Error fetching sensor data for session ${sessionId}:`, error);
+            return;
+        }
+
+        console.log(`Found ${sensorData ? sensorData.length : 0} records within session time range`);
+
+        if (!sensorData || sensorData.length === 0) {
+            console.warn(`No sensor data found for session ${sessionId}.`);
+            return;
+        }
+
+        // Log detailed information about the sensor data
+        console.log(`\nSensor Data Details for Session ${sessionId}:`);
+        sensorData.forEach((data, index) => {
+            console.log(`Record ${index + 1}:`);
+            console.log(`- ID: ${data.id}`);
+            console.log(`- Timestamp: ${new Date(data.timestamp)}`);
+            console.log(`- Sensor Values: ${data.sensor1}, ${data.sensor2}, ${data.sensor3}`);
+            console.log(`- Average: ${data.average_sensor}`);
+            console.log(`- Session ID: ${data["session-ID"]}`);
+        });
+
+        // Create or update the graph container
+        const containerId = `sessionGraphs_${sessionId}`;
+        let container = document.getElementById(containerId);
+        if (!container) {
+            container = document.createElement('div');
+            container.id = containerId;
+            container.className = 'session-graphs';
+            container.innerHTML = `
+                <h3>Session ${sessionId} - Terrain: ${terrain}</h3>
+                <canvas id="sensor1Graph_${sessionId}" class="graph-canvas"></canvas>
+                <canvas id="sensor2Graph_${sessionId}" class="graph-canvas"></canvas>
+                <canvas id="sensor3Graph_${sessionId}" class="graph-canvas"></canvas>
+                <canvas id="averageGraph_${sessionId}" class="graph-canvas"></canvas>
+            `;
+            document.getElementById('previousSessions').appendChild(container);
+        }
+
+        // Plot the graphs with detailed logging
+        console.log(`\nPlotting graphs for Session ${sessionId}:`);
+        updateGraphs(sensorData, sessionId, terrain);
+    } catch (error) {
+        console.error(`Error in fetchAndPlotSessionGraphs:`, error);
+    }
+}
+
+        function plotSessionGraph(sensorData, sessionId, terrain) {
+    // Extract labels (time) and sensor values
+    let labels = sensorData.map(d => new Date(d.timestamp).toLocaleTimeString());
+    let sensor1Values = sensorData.map(d => d.sensor1);
+    let sensor2Values = sensorData.map(d => d.sensor2);
+    let sensor3Values = sensorData.map(d => d.sensor3);
+    let avgValues = sensorData.map(d => d.average_sensor);
+
+    // Create graphs for each sensor
+    createGraph(`sensor1Graph_${sessionId}`, labels, sensor1Values, `Sensor 1 - Session: ${sessionId}`);
+    createGraph(`sensor2Graph_${sessionId}`, labels, sensor2Values, `Sensor 2 - Session: ${sessionId}`);
+    createGraph(`sensor3Graph_${sessionId}`, labels, sensor3Values, `Sensor 3 - Session: ${sessionId}`);
+    createGraph(`averageGraph_${sessionId}`, labels, avgValues, `Average Force - Session: ${sessionId}`);
+}
+
+        function createGraphContainers(sessionId) {
+    const sessionGraphsContainer = document.createElement("div");
+    sessionGraphsContainer.id = `sessionGraphs_${sessionId}`;
+    sessionGraphsContainer.className = "session-graphs";
+
+    sessionGraphsContainer.innerHTML = `
+        <canvas id="sensor1Graph_${sessionId}" class="graph-canvas"></canvas>
+        <canvas id="sensor2Graph_${sessionId}" class="graph-canvas"></canvas>
+        <canvas id="sensor3Graph_${sessionId}" class="graph-canvas"></canvas>
+        <canvas id="averageGraph_${sessionId}" class="graph-canvas"></canvas>
+    `;
+
+    document.getElementById("previousSessions").appendChild(sessionGraphsContainer);
+}
+
+        function displaySessionGraphs(sensorData, sessionId, terrain) {
+    const previousSessionsContainer = document.getElementById("previousSessions");
+
+    // Create a container for the session's graphs
+    const sessionDiv = document.createElement("div");
+    sessionDiv.className = "session-container";
+    sessionDiv.innerHTML = `
+        <h3>Session ${sessionId} - Terrain: ${terrain}</h3>
+        <div id="sessionGraphs_${sessionId}" class="session-graphs">
+            <canvas id="sensor1Graph_${sessionId}" class="graph-canvas"></canvas>
+            <canvas id="sensor2Graph_${sessionId}" class="graph-canvas"></canvas>
+            <canvas id="sensor3Graph_${sessionId}" class="graph-canvas"></canvas>
+            <canvas id="averageGraph_${sessionId}" class="graph-canvas"></canvas>
+        </div>
+    `;
+
+    // Append the session container to the "Previous Sessions" section
+    previousSessionsContainer.appendChild(sessionDiv);
+
+    // Plot the graphs for the session
+    plotSessionGraph(sensorData, sessionId, terrain);
+}
+
+        async function insertSensorData() {
+    // Simulate sensor data with a timestamp
+    const sensorData = {
+        sensor1: Math.random() * 100,
+        sensor2: Math.random() * 100,
+        sensor3: Math.random() * 100,
+        average_sensor: (Math.random() * 100).toFixed(2),
+        timestamp: new Date() // Use the current time as the sensor data timestamp
+    };
+
+    // Convert the sensor timestamp to UTC (since database stores in UTC)
+    const sensorTimestamp = new Date(sensorData.timestamp);
+    const sensorTimestampUTC = new Date(sensorTimestamp.getTime() - (9 * 60 * 60 * 1000)); // Subtract 9 hours to convert from JST to UTC
+    console.log("Sensor Data Timestamp (JST):", sensorTimestamp);
+    console.log("Sensor Data Timestamp (UTC):", sensorTimestampUTC);
+
+    // Fetch all active sessions
+    let { data: activeSessions, error: sessionError } = await supabase
+        .from('sessions')
+        .select('*')
+        .order('start_time', { ascending: true }); // Order by start time to handle overlapping sessions
+
+    if (sessionError) {
+        console.error("Error fetching active sessions:", sessionError);
+        return;
+    }
+
+    if (!activeSessions || activeSessions.length === 0) {
+        console.warn("No active sessions found.");
+        return;
+    }
+
+    // Log all active sessions for debugging
+    console.log("Active Sessions:", activeSessions);
+
+    // Find the matching session by comparing UTC timestamps
+    const matchingSession = activeSessions.find(session => {
+        const sessionStart = new Date(session.start_time);
+        const sessionEnd = new Date(session.end_time);
+
+        // Log timestamps for debugging
+        console.log(`Checking Session ${session["session-ID"]}:`);
+        console.log(`Sensor Timestamp (UTC): ${sensorTimestampUTC}`);
+        console.log(`Session Start (UTC): ${sessionStart}`);
+        console.log(`Session End (UTC): ${sessionEnd}`);
+        console.log(`Is within range? ${sensorTimestampUTC >= sessionStart && sensorTimestampUTC <= sessionEnd}`);
+
+        return sensorTimestampUTC >= sessionStart && sensorTimestampUTC <= sessionEnd;
+    });
+
+    if (!matchingSession) {
+        console.warn(`No matching session found for sensor data timestamp: ${sensorTimestamp}`);
+        console.log("Available sessions and their time ranges:");
+        activeSessions.forEach(session => {
+            const sessionStart = new Date(session.start_time);
+            const sessionEnd = new Date(session.end_time);
+            console.log(`Session ${session["session-ID"]}: ${sessionStart} to ${sessionEnd}`);
+        });
+        return;
+    }
+
+    // Log the matched session details for debugging
+    console.log("Matched Session:", matchingSession);
+    const sessionId = matchingSession["session-ID"];
+    console.log("Matched Session ID:", sessionId);
+
+    // Insert sensor data into the database with the matched session ID
+    let { error: insertError } = await supabase.from('sensor_data').insert([{
+        "session-ID": sessionId,
+        sensor1: sensorData.sensor1,
+        sensor2: sensorData.sensor2,
+        sensor3: sensorData.sensor3,
+        average_sensor: sensorData.average_sensor,
+        timestamp: sensorTimestampUTC // Store the timestamp in UTC
+    }]);
+
+    if (insertError) {
+        console.error("Error inserting sensor data:", insertError);
+    } else {
+        console.log(`Sensor data recorded for session ${sessionId}:`, sensorData);
+    }
+}
+
+const utcTimestamp = "2025-04-04T12:00:00Z"; // Example UTC timestamp
+const localTime = new Date(utcTimestamp).toLocaleString(); // Converts to local time
+console.log(localTime);
+console.log("Session Start Time (UTC):", startTime.toISOString());
+console.log("Sensor Data Timestamp (UTC):", sensorData.timestamp);
+
+async function categorizeSensorData() {
+    console.log("Starting categorization of sensor data...");
+
+    try {
+        // Fetch all sensor data with a null session-ID
+        let { data: uncategorizedData, error: fetchError } = await supabase
+            .from('sensor_data')
+            .select('*')
+            .is('session-ID', null); // Fetch records where session-ID is null
+
+        if (fetchError) {
+            console.error("Error fetching uncategorized sensor data:", fetchError);
+            return;
+        }
+
+        if (!uncategorizedData || uncategorizedData.length === 0) {
+            console.log("No uncategorized sensor data found.");
+            return;
+        }
+
+        console.log("Found uncategorized sensor data:", uncategorizedData.length, "records");
+
+        // Fetch all sessions
+        let { data: sessions, error: sessionError } = await supabase
+            .from('sessions')
+            .select('"session-ID", start_time, end_time')
+            .order('start_time', { ascending: true });
+
+        if (sessionError) {
+            console.error("Error fetching sessions:", sessionError);
+            return;
+        }
+
+        if (!sessions || sessions.length === 0) {
+            console.log("No sessions found.");
+            return;
+        }
+
+        console.log("Found sessions:", sessions.length);
+
+        // Iterate through each uncategorized sensor data record
+        for (let sensor of uncategorizedData) {
+            const sensorTimestamp = new Date(sensor.timestamp);
+            console.log(`\nProcessing sensor data ID ${sensor.id}:`);
+            console.log(`Sensor timestamp: ${sensorTimestamp}`);
+
+            // Find the session where the sensor timestamp falls within the session's time range
+            const matchingSession = sessions.find(session => {
+                const sessionStart = new Date(session.start_time);
+                const sessionEnd = new Date(session.end_time);
+
+                console.log(`Checking Session ${session["session-ID"]}:`);
+                console.log(`Session Start: ${sessionStart}`);
+                console.log(`Session End: ${sessionEnd}`);
+                console.log(`Is within range? ${sensorTimestamp >= sessionStart && sensorTimestamp <= sessionEnd}`);
+
+                return sensorTimestamp >= sessionStart && sensorTimestamp <= sessionEnd;
+            });
+
+            if (matchingSession) {
+                console.log(`Found matching session: ${matchingSession["session-ID"]}`);
+                
+                // Update the sensor data with the matched session-ID
+                let { error: updateError } = await supabase
+                    .from('sensor_data')
+                    .update({ "session-ID": matchingSession["session-ID"] })
+                    .eq('id', sensor.id);
+
+                if (updateError) {
+                    console.error(`Error updating sensor data ID ${sensor.id}:`, updateError);
+                } else {
+                    console.log(`Successfully assigned sensor data ID ${sensor.id} to session ${matchingSession["session-ID"]}`);
+                }
+            } else {
+                console.warn(`No matching session found for sensor data ID ${sensor.id}`);
+                console.log("Available sessions and their time ranges:");
+                sessions.forEach(session => {
+                    console.log(`Session ${session["session-ID"]}: ${new Date(session.start_time)} to ${new Date(session.end_time)}`);
+                });
+            }
+        }
+
+        console.log("Categorization of sensor data completed.");
+    } catch (error) {
+        console.error("Unexpected error during categorization:", error);
+    }
+}
+
+async function assignSessionsToSensorData() {
+    console.log("Running session assignment for sensor data...");
+
+    try {
+        // Fetch all sensor data rows that need session assignment
+        let { data: sensorData, error: fetchError } = await supabase
+            .from('sensor_data')
+            .select('*')
+            .or('session-ID.is.null,session-ID.eq.""'); // Get rows with null or empty session-ID
+
+        if (fetchError) {
+            console.error("Error fetching sensor data:", fetchError);
+            return;
+        }
+
+        if (!sensorData || sensorData.length === 0) {
+            console.log("No sensor data needs session assignment.");
+            return;
+        }
+
+        // Fetch all sessions
+        let { data: sessions, error: sessionError } = await supabase
+            .from('sessions')
+            .select('"session-ID", start_time, end_time')
+            .order('start_time', { ascending: true }); // Order by start time to handle overlapping sessions
+
+        if (sessionError) {
+            console.error("Error fetching sessions:", sessionError);
+            return;
+        }
+
+        if (!sessions || sessions.length === 0) {
+            console.log("No sessions found.");
+            return;
+        }
+
+        // Process each sensor data row
+        for (let sensor of sensorData) {
+            const sensorTimestamp = new Date(sensor.timestamp);
+            console.log(`\nProcessing sensor data ID ${sensor.id}:`);
+            console.log(`Original sensor timestamp: ${sensorTimestamp}`);
+            
+            // Find all sessions that could match this timestamp
+            const matchingSessions = sessions.filter(session => {
+                const sessionStart = new Date(session.start_time);
+                const sessionEnd = new Date(session.end_time);
+                
+                // Log timestamps for debugging
+                console.log(`\nChecking Session ${session["session-ID"]}:`);
+                console.log(`Session Start: ${sessionStart}`);
+                console.log(`Session End: ${sessionEnd}`);
+                console.log(`Is within range? ${sensorTimestamp >= sessionStart && sensorTimestamp <= sessionEnd}`);
+
+                return sensorTimestamp >= sessionStart && sensorTimestamp <= sessionEnd;
+            });
+
+            if (matchingSessions.length > 0) {
+                console.log(`Found ${matchingSessions.length} matching sessions for sensor data ID ${sensor.id}`);
+                
+                // Update the sensor data with the matched session-ID
+                let { error: updateError } = await supabase
+                    .from('sensor_data')
+                    .update({ "session-ID": matchingSessions[0]["session-ID"] })
+                    .eq('id', sensor.id);
+
+                if (updateError) {
+                    console.error(`Error updating sensor data ID ${sensor.id}:`, updateError);
+                } else {
+                    console.log(`Successfully assigned sensor data ID ${sensor.id} to session ${matchingSessions[0]["session-ID"]}`);
+                }
+            } else {
+                console.warn(`No matching session found for sensor data ID ${sensor.id}`);
+                console.log("Available sessions and their time ranges:");
+                sessions.forEach(session => {
+                    console.log(`Session ${session["session-ID"]}: ${new Date(session.start_time)} to ${new Date(session.end_time)}`);
+                });
+            }
+        }
+
+        console.log("Session assignment for sensor data completed.");
+    } catch (error) {
+        console.error("Error in assignSessionsToSensorData:", error);
+    }
+}
+
+async function checkLatestTimestamp() {
+    try {
+        // First check if we can connect to the database
+        let { data: testData, error: testError } = await supabase
+            .from('sensor_data')
+            .select('count')
+            .single();
+
+        if (testError) {
+            console.error("Database connection error:", testError);
+            alert("Error connecting to the database. Please check your connection.");
+            return;
+        }
+
+        // Fetch the latest 5 records to see the ordering
+        let { data, error } = await supabase
+            .from('sensor_data')
+            .select('timestamp, "session-ID", sensor1, sensor2, sensor3, average_sensor, id')
+            .order('id', { ascending: false }) // Order by ID instead of timestamp
+            .limit(5);
+
+        if (error) {
+            console.error("Error fetching latest records:", error);
+            alert("Error fetching data from the database.");
+            return;
+        }
+
+        if (data && data.length > 0) {
+            console.log("Latest 5 records from sensor_data table:", data);
+            
+            let message = "Latest 5 records from sensor_data table:\n\n";
+            data.forEach(record => {
+                const timestamp = new Date(record.timestamp);
+                message += `ID: ${record.id}\n`;
+                message += `Timestamp: ${timestamp}\n`;
+                message += `Session ID: ${record["session-ID"]}\n`;
+                message += `Sensor Values: ${record.sensor1}, ${record.sensor2}, ${record.sensor3}\n`;
+                message += `Average: ${record.average_sensor}\n`;
+                message += "-------------------\n";
+            });
+
+            alert(message);
+        } else {
+            console.log("No sensor data found in the table");
+            alert("No sensor data found in the sensor_data table. The table appears to be empty.");
+        }
+    } catch (error) {
+        console.error("Error checking latest timestamp:", error);
+        alert("An error occurred while checking the database. Please check the console for details.");
+    }
+}
+
+async function checkLastSessions() {
+    try {
+        // Fetch the last 5 sessions ordered by start_time
+        let { data, error } = await supabase
+            .from('sessions')
+            .select('"session-ID", start_time, end_time, "patient-ID"')
+            .order('start_time', { ascending: false })
+            .limit(5);
+
+        if (error) {
+            console.error("Error fetching sessions:", error);
+            alert("Error fetching sessions from the database.");
+            return;
+        }
+
+        if (data && data.length > 0) {
+            console.log("Last 5 sessions:", data);
+            
+            let message = "Last 5 Sessions:\n\n";
+            data.forEach(session => {
+                const startTime = new Date(session.start_time);
+                const endTime = new Date(session.end_time);
+                message += `Session ID: ${session["session-ID"]}\n`;
+                message += `Patient ID: ${session["patient-ID"]}\n`;
+                message += `Start Time: ${startTime}\n`;
+                message += `End Time: ${endTime}\n`;
+                message += "-------------------\n";
+            });
+
+            alert(message);
+        } else {
+            console.log("No sessions found in the table");
+            alert("No sessions found in the database.");
+        }
+    } catch (error) {
+        console.error("Error checking last sessions:", error);
+        alert("An error occurred while checking the sessions. Please check the console for details.");
+    }
+}
     </script>
 </body>
-
 </html>
